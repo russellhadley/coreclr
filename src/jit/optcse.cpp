@@ -652,13 +652,13 @@ unsigned            Compiler::optValnumCSE_Locate()
 
                 if (ValueNumStore::isReservedVN(vnlib))
                     continue;
-
+#if 0
                 // Don't CSE constant values, instead let the Value Number
                 // based Assertion Prop phase handle them.
                 //
                 if (vnStore->IsVNConstant(vnlib))
                     continue;
-
+#endif
                 /* Assign an index to this expression */
 
                 unsigned  CSEindex = optValnumCSE_Index(tree, stmt);
