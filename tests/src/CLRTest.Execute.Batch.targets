@@ -18,6 +18,25 @@ WARNING:   When setting properties based on their current state (for example:
 -->
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!--
+    Target: GetJitDisasmBatchScript
+    This returns the portion of the execution script that generates the required lines to generate disasm the test executable.
+  -->
+  
+  <Target
+    Condition="'$(JitDisasm)'=='true'"
+    Name="GetJitDisasmBatchScript"
+    Returns="$(JitDisasmBatchScript)">
+    
+    <PropertyGroup>
+      <JitDisasmBatchScript>
+        <![CDATA[
+    echo $(_CLRTestToRunFileFullPath)
+        ]]>
+      </JitDisasmBatchScript>
+    </PropertyGroup>
+  </Target>
+
   <Target
     Name="GetIlasmRoundTripBatchScript"
     Returns="$(IlasmRoundTripBatchScript)">
@@ -95,7 +114,7 @@ IF NOT "!ERRORLEVEL!"=="0" (
   <Target Name="GenerateBatchExecutionScript"
     Inputs="$(MSBuildProjectFullPath)"
     Outputs="$(OutputPath)\$(MSBuildProjectName).cmd"
-    DependsOnTargets="FetchExternalProperties;$(BatchScriptSnippetGen);GetIlasmRoundTripBatchScript">
+    DependsOnTargets="FetchExternalProperties;$(BatchScriptSnippetGen);GetIlasmRoundTripBatchScript;GetJitDisasmBatchScript">
 
     <Message Text="Project depends on $(_CLRTestToRunFileFullPath)." Condition="'$(_CLRTestNeedsProjectToRun)' == 'True'" />
 
@@ -319,6 +338,9 @@ REM Environment Variables
 $(BatchEnvironmentVariables)
 
 $(BatchCLRTestEnvironmentCompatibilityCheck)
+
+REM JitDisasm Script (when /p:JitDisasm=true)
+$(JitDisasmBatchScript)
 
 REM IlasmRoundTrip Script
 $(IlasmRoundTripBatchScript)

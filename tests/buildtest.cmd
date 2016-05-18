@@ -29,6 +29,7 @@ set "__LogsDir=%__RootBinDir%\Logs"
 set __CleanBuild=
 set __crossgen=
 set __ILAsmRoundtrip=
+set __JitDisasm=
 set __BuildSequential=
 set __TestPriority=
 set __msbuildCleanBuildArgs=
@@ -65,6 +66,7 @@ if /i "%1" == "vs2015"              (set __VSVersion=%1&set processedArgs=!proce
 
 if /i "%1" == "crossgen"            (set __crossgen=true&set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
 if /i "%1" == "ilasmroundtrip"      (set __ILAsmRoundtrip=true&set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
+if /i "%1" == "jitdisasm"           (set __JitDisasm=true&shift&goto Arg_Loop)
 if /i "%1" == "sequential"          (set __BuildSequential=1&set processedArgs=!processedArgs! %1&shift&goto Arg_Loop)
 if /i "%1" == "priority"            (set __TestPriority=%2&set processedArgs=!processedArgs! %1 %2&shift&shift&goto Arg_Loop)
 
@@ -262,6 +264,11 @@ if defined __ILAsmRoundtrip (
     set __msbuildManagedBuildArgs=%__msbuildManagedBuildArgs% /p:IlasmRoundTrip=true
 )
 
+if defined __JitDisasm (
+    echo Building tests with JitDisasm enabled.
+    set __msbuildManagedBuildArgs=%__msbuildManagedBuildArgs% /p:JitDisasm=true
+)
+
 if defined __TestPriority (
     echo Building Test Priority %__TestPriority%
     set __msbuildManagedBuildArgs=%__msbuildManagedBuildArgs% /p:CLRTestPriorityToBuild=%__TestPriority%
@@ -355,6 +362,7 @@ echo     666: Build all tests with priority 0, 1 ... 666
 echo sequential: force a non-parallel build ^(default is to build in parallel
 echo     using all processors^).
 echo IlasmRoundTrip: enables ilasm round trip build and run of the tests before executing them.
+echo jitdisasm: enable dumping jit disassembly for each test.
 echo verbose: enables detailed file logging for the msbuild tasks into the msbuild log file.
 exit /b 1
 
