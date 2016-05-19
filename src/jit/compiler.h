@@ -1338,6 +1338,31 @@ public:
     void   Free(void * p) {}
 };
 
+class TempAllocator : public IAllocator 
+{
+  ArenaAllocator *m_arena;
+#if MEASURE_MEM_ALLOC
+  CompMemKind m_cmk;
+#endif
+public:
+  TempAllocator(ArenaAllocator *arena, CompMemKind cmk)
+      : m_arena(arena)
+#if MEASURE_MEM_ALLOC
+        ,
+        m_cmk(cmk)
+#endif
+  {}
+
+  ~TempAllocator() { m_arena->destroy(); }
+
+  inline void *Alloc(size_t sz);
+
+  inline void *ArrayAlloc(size_t elems, size_t elemSize);
+
+  // All memory freed when TempAllocator falls out of scope.
+  void Free(void *p) {}
+};
+
 /*
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -1366,8 +1391,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 */
 
-class   Compiler
-{
+class Compiler {
     friend class emitter;
     friend class UnwindInfo;
     friend class UnwindFragmentInfo;
