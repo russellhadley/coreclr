@@ -148,7 +148,8 @@ static inline BasicBlock* IntersectDom(BasicBlock* finger1, BasicBlock* finger2)
 
 void Compiler::fgSsaBuild()
 {
-    IAllocator* pIAllocator = new (this, CMK_SSA) CompAllocator(this, CMK_SSA);
+    ArenaAllocator * ssaArena = new ArenaAllocator(this->getMemoryManager())
+    IAllocator* pIAllocator = new (this, CMK_SSA) TempAllocator(ssaArena, CMK_SSA);
 
     // If this is not the first invocation, reset data structures for SSA.
     if (fgSsaPassesCompleted > 0)
