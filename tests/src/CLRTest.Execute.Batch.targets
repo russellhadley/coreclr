@@ -29,9 +29,13 @@ WARNING:   When setting properties based on their current state (for example:
     Returns="$(JitDisasmBatchScript)">
     
     <PropertyGroup>
+      <AssemblyPath>$(_CLRTestToRunFileFullPath)</AssemblyPath>
+      <JitDisasmOut>$(OutputPath)</JitDisasmOut>
+      <InputAssemblyName Condition="'$(CLRTestKind)' == 'RunOnly'">$([MSBuild]::MakeRelative($(OutputPath), $(_CLRTestToRunFileFullPath)))</InputAssemblyName>
+      <InputAssemblyName Condition="'$(CLRTestKind)' == 'BuildAndRun'">$(MSBuildProjectName).exe</InputAssemblyName>
       <JitDisasmBatchScript>
         <![CDATA[
-    echo $(_CLRTestToRunFileFullPath)
+    echo jit-dasm.exe --platform %CORE_ROOT% --output $(JitDisasmOut) $(InputAssemblyName)
         ]]>
       </JitDisasmBatchScript>
     </PropertyGroup>
