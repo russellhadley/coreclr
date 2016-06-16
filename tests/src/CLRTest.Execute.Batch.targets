@@ -30,7 +30,7 @@ WARNING:   When setting properties based on their current state (for example:
     
     <PropertyGroup>
       <AssemblyPath>$(_CLRTestToRunFileFullPath)</AssemblyPath>
-      <JitDisasmOut>$(OutputPath)</JitDisasmOut>
+      <JitDisasmOut>$(__RootBinDir)\dasm$([MSBuild]::MakeRelative($(__RootBinDir)\tests, $(OutputPath)))\$(MSBuildProjectName).dasm</JitDisasmOut>
       <InputAssemblyName Condition="'$(CLRTestKind)' == 'RunOnly'">$([MSBuild]::MakeRelative($(OutputPath), $(_CLRTestToRunFileFullPath)))</InputAssemblyName>
       <InputAssemblyName Condition="'$(CLRTestKind)' == 'BuildAndRun'">$(MSBuildProjectName).exe</InputAssemblyName>
       <JitDisasmBatchScript>
