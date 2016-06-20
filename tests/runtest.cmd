@@ -63,6 +63,7 @@ if /i "%1" == "jitstress"             (set COMPlus_JitStress=%2&shift&shift&goto
 if /i "%1" == "jitstressregs"         (set COMPlus_JitStressRegs=%2&shift&shift&goto Arg_Loop)
 if /i "%1" == "jitminopts"            (set COMPlus_JITMinOpts=1&shift&shift&goto Arg_Loop)
 if /i "%1" == "jitforcerelocs"        (set COMPlus_ForceRelocs=1&shift&shift&goto Arg_Loop)
+if /i "%1" == "jitdisasm"             (set __JitDisasm=1&shift&goto Arg_Loop)
 if /i "%1" == "GenerateLayoutOnly"    (set __GenerateLayoutOnly=1&set __SkipWrapperGeneration=true&shift&goto Arg_Loop)
 if /i "%1" == "PerfTests"             (set __PerfTests=true&set __SkipWrapperGeneration=true&shift&goto Arg_Loop)
 if /i "%1" == "runcrossgentests"      (set RunCrossGen=true&shift&goto Arg_Loop)
@@ -248,6 +249,7 @@ REM ============================================================================
 REM Compile the managed assemblies in Core_ROOT before running the tests
 :PrecompileAssembly
 
+if defined __JitDisasm goto :jitdisasm
 REM Skip mscorlib since it is already precompiled.
 if /I "%3" == "mscorlib.dll" exit /b 0
 if /I "%3" == "mscorlib.ni.dll" exit /b 0
@@ -265,6 +267,30 @@ if %__exitCode% neq 0 (
 )
     
 echo Successfully precompiled %2
+
+exit /b 0
+
+:jitdisasm
+
+if /I "%3" == "mscorlib.ni.dll" exit /b 0
+
+echo jit-dasm --crossgen %1\crossgen.exe --platform %CORE_ROOT% --output %__RootBinDir%\dasm %2
+jit-dasm --crossgen %1\crossgen.exe --platform %CORE_ROOT% --output %__RootBinDir%\dasm "%2" >nul 2>nul
+
+set /a __exitcode = %errorlevel%
+
+if "%__exitCode%" == "-2146230517" (
+    echo %2 is not a managed assembly.
+    exit /b 0
+)
+
+if %__exitCode% neq 0 (
+    echo Unable to precompile %2
+    exit /b 0
+)
+
+echo Successfull precompiled and generated dasm for %2
+
 exit /b 0
 
 :PrecompileFX
@@ -342,8 +368,6 @@ if errorlevel 1 (
 )
 echo %__MsgPrefix% Created the runtime layout with all dependencies in %CORE_ROOT%
 exit /b 0
-
-
 
 :Usage
 echo.
