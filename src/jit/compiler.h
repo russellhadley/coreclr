@@ -9051,6 +9051,36 @@ void * CompAllocator::ArrayAlloc(size_t elems, size_t elemSize)
 #endif
 }
 
+// Inline methods of TempAllocator
+// Intent is to do the same kind of checking and tracing as the comp versions
+// but not have to call through the main comp routines (to keep this seperatable)
+void * TempAllocator::Alloc(size_t sz)
+{
+#if MEASURE_MEM_ALLOC
+    //genMemStats.AddAlloc(sz, m_cmk);
+#endif
+
+    void * ptr = m_arena->allocateMemory(sz);
+
+    // Verify that the current block is aligned. Only then will the next
+    // block allocated be on an aligned boundary.
+    assert ((size_t(ptr) & (sizeof(size_t)- 1)) == 0);
+
+    return ptr;
+}
+
+void * TempAllocator::ArrayAlloc(size_t elems, size_t elemSize)
+{
+    ClrSafeInt<size_t> safeElemSize(elemSize);
+    ClrSafeInt<size_t> safeNumElems(elems);
+    ClrSafeInt<size_t> size = safeElemSize * safeNumElems;
+    if (size.IsOverflow())
+    {
+        return nullptr;
+    }
+
+    return Alloc(size.Value());
+}
 
 // LclVarDsc constructor. Uses Compiler, so must come after Compiler definition.
 inline
