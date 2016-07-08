@@ -148,7 +148,7 @@ static inline BasicBlock* IntersectDom(BasicBlock* finger1, BasicBlock* finger2)
 
 void Compiler::fgSsaBuild()
 {
-    ArenaAllocator * ssaArena = new ArenaAllocator(this->getMemoryManager())
+    ArenaAllocator * ssaArena = new ArenaAllocator(info.compCompHnd->getMemoryManager());
     IAllocator* pIAllocator = new (this, CMK_SSA) TempAllocator(ssaArena, CMK_SSA);
 
     // If this is not the first invocation, reset data structures for SSA.
@@ -200,6 +200,7 @@ void Compiler::fgResetForSsa()
  */
 SsaBuilder::SsaBuilder(Compiler* pCompiler, IAllocator* pIAllocator)
     : m_pCompiler(pCompiler)
+    , m_pIAllocator(pIAllocator)
     , m_allocator(pIAllocator)
 
 #ifdef SSA_FEATURE_DOMARR
@@ -224,7 +225,7 @@ SsaBuilder::SsaBuilder(Compiler* pCompiler, IAllocator* pIAllocator)
 int SsaBuilder::TopologicalSort(BasicBlock** postOrder, int count)
 {
     // Allocate and initialize visited flags.
-    bool* visited = (bool*) alloca(count * sizeof(bool));
+    bool* visited = (bool*)m_pIAllocator->Alloc(count * sizeof(bool));
     memset(visited, 0, count * sizeof(bool));
 
     // Display basic blocks.

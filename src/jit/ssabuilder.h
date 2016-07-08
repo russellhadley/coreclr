@@ -213,6 +213,8 @@ private:
 
     Compiler* m_pCompiler;
 
+    // Pool for SSA
+    IAllocator *m_pIAllocator;
     // Used to allocate space for jitstd data structures.
     jitstd::allocator<void> m_allocator;
 };
