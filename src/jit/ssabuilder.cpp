@@ -225,8 +225,12 @@ SsaBuilder::SsaBuilder(Compiler* pCompiler, IAllocator* pIAllocator)
 int SsaBuilder::TopologicalSort(BasicBlock** postOrder, int count)
 {
     // Allocate and initialize visited flags.
-    bool* visited = (bool*)m_pIAllocator->Alloc(count * sizeof(bool));
-    memset(visited, 0, count * sizeof(bool));
+    // -> round up bytes requested to the nearest int sized boundary.
+
+    int bytes = count * sizeof(bool);
+    int rounded = ((bytes + (sizeof(int) - 1)) & ~(sizeof(int) -1));
+    bool* visited = (bool*)m_pIAllocator->Alloc(rounded);
+    memset(visited, 0, rounded);
 
     // Display basic blocks.
     DBEXEC(VERBOSE, m_pCompiler->fgDispBasicBlocks());
