@@ -222,8 +222,7 @@ SsaBuilder::SsaBuilder(Compiler* pCompiler, IAllocator* pIAllocator)
  */
 int SsaBuilder::TopologicalSort(BasicBlock** postOrder, int count)
 {
-    // Allocate and initialize visited flags.
-    bool* visited = (bool*) alloca(count * sizeof(bool));
+    bool* visited = new (m_pCompiler->getAllocator()) bool[count];
     memset(visited, 0, count * sizeof(bool));
 
     // Display basic blocks.
