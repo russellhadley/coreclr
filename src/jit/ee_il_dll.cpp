@@ -70,6 +70,7 @@ void __stdcall jitStartup(ICorJitHost* jitHost)
 #if defined(PLATFORM_UNIX)
     jitstdout = procstdout();
 #else
+#if 0
     if (jitstdout == nullptr)
     {
         int jitstdoutFd = _dup(_fileno(procstdout()));
@@ -81,6 +82,7 @@ void __stdcall jitStartup(ICorJitHost* jitHost)
         // `fflush()` throughout the code.
         setvbuf(jitstdout, nullptr, _IONBF, 0);
     }
+#endif
 #endif
 
 #ifdef FEATURE_TRACELOGGING
