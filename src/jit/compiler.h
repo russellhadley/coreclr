@@ -3780,6 +3780,11 @@ public:
         return newLiveSet;
     }
 
+    // Capture live across EH local vars based on liveness pass.
+    VARSET_TP exceptVars = nullptr;
+    VARSET_TP finallyVars = nullptr;
+    VARSET_TP filterVars = nullptr;
+
     void fgInterBlockLocalVarLiveness();
 
     // The presence of "x op= y" operations presents some difficulties for SSA: this is both a use of some SSA name of
@@ -4596,14 +4601,14 @@ public:
 public:
     GenTreeStmt* fgInsertStmtAtEnd(BasicBlock* block, GenTreePtr node);
 
-public: // Used by linear scan register allocation
+public: 
+    // Used by linear scan register allocation
     GenTreeStmt* fgInsertStmtNearEnd(BasicBlock* block, GenTreePtr node);
-
-private:
+    // Used by Write Thru
     GenTreePtr fgInsertStmtAtBeg(BasicBlock* block, GenTreePtr stmt);
     GenTreePtr fgInsertStmtAfter(BasicBlock* block, GenTreePtr insertionPoint, GenTreePtr stmt);
 
-public: // Used by linear scan register allocation
+    // Used by linear scan register allocation
     GenTreePtr fgInsertStmtBefore(BasicBlock* block, GenTreePtr insertionPoint, GenTreePtr stmt);
 
 private:
@@ -9024,8 +9029,10 @@ private:
     static LPCWSTR JitTimeLogCsv();        // Retrieve the file name for CSV from ConfigDWORD.
     static LPCWSTR compJitTimeLogFilename; // If a log file for JIT time is desired, filename to write it to.
 #endif
+public:
     inline void EndPhase(Phases phase); // Indicate the end of the given phase.
 
+private:
 #if MEASURE_CLRAPI_CALLS
     // Thin wrappers that call into JitTimer (if present).
     inline void CLRApiCallEnter(unsigned apix);

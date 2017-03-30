@@ -30,3 +30,4 @@
 #include "bitvec.h"
 #include "inline.h"
 #include "objectalloc.h"
+#include "writethru.h"

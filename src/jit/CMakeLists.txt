@@ -73,6 +73,7 @@ set( JIT_SOURCES
   unwind.cpp
   utils.cpp
   valuenum.cpp
+  writethru.cpp
 )
 
 # The following defines all the source files used by the "legacy" back-end (#ifdef LEGACY_BACKEND).

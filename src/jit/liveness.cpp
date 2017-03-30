@@ -2785,9 +2785,32 @@ void Compiler::fgInterBlockLocalVarLiveness()
      */
     BasicBlock* block;
 
-    VARSET_TP VARSET_INIT_NOCOPY(exceptVars, VarSetOps::MakeEmpty(this));  // vars live on entry to a handler
-    VARSET_TP VARSET_INIT_NOCOPY(finallyVars, VarSetOps::MakeEmpty(this)); // vars live on exit of a 'finally' block
-    VARSET_TP VARSET_INIT_NOCOPY(filterVars, VarSetOps::MakeEmpty(this));  // vars live on exit from a 'filter'
+    if (exceptVars == nullptr) 
+    {
+        VarSetOps::AssignNoCopy(this, exceptVars, VarSetOps::MakeEmpty(this));  // vars live on entry to a handler
+    }
+    else
+    {
+        VarSetOps::ClearD(this, exceptVars);
+    }
+
+    if (finallyVars == nullptr)
+    {
+        VarSetOps::AssignNoCopy(this, finallyVars, VarSetOps::MakeEmpty(this)); // vars live on exit of a 'finally' block
+    }
+    else
+    {
+        VarSetOps::ClearD(this, finallyVars);
+    }
+
+    if (filterVars == nullptr)
+    {
+        VarSetOps::AssignNoCopy(this, filterVars, VarSetOps::MakeEmpty(this));  // vars live on exit from a 'filter'
+    }
+    else
+    {
+        VarSetOps::ClearD(this, filterVars);
+    }
 
     for (block = fgFirstBB; block; block = block->bbNext)
     {

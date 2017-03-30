@@ -4455,6 +4455,14 @@ void Compiler::compCompile(void** methodCodePtr, ULONG* methodCodeSize, JitFlags
         bool doRangeAnalysis = true;
         int  iterations      = 1;
 
+#ifndef LEGACY_BACKEND
+ 
+        // Write thru any local vars live across EH edges.
+        WriteThru writeThru(this);
+        writeThru.Run();
+
+#endif // LEGACY_BACKEND
+
 #if defined(OPT_CONFIG)
         doSsa           = (JitConfig.JitDoSsa() != 0);
         doEarlyProp     = doSsa && (JitConfig.JitDoEarlyProp() != 0);
