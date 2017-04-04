@@ -23,7 +23,7 @@ class Foreach01
 
         sum = sum + Value(42);
         
-        string path = ".\t.csv";
+        string path = "t.csv";
         using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None))
         {
             var result = new byte[fs.Length];

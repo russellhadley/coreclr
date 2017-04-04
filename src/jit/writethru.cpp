@@ -230,8 +230,26 @@ bool WriteThru::IsEHExit(BasicBlock* block)
 //   Find the first insertion point for reloads.  This needs to skip
 //   over expected first statements like the catch arg.
 //
-GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* reloadBlock)
+GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** reloadBlock)
 {
+    assert(comp->fgComputePredsDone);
+
+    // Find the appropraite block;
+
+    if (((exitBlock->bbFlags & BBF_KEEP_BBJ_ALWAYS) == 1) 
+        && exitBlock->bbPrev->isBBCallAlwaysPair()) 
+    {
+        successorBlock = exitBlock->GetUniqueSucc();
+
+        if (successorBlock->GetUniquePred(comp) == nullptr)
+        {
+            // If successor a join block, split the edge and
+            // insert a airlock block.
+            BasicBlock* newBlock = comp->fgNewBBinRegion(BBJ_ALWAYS, successorBlock->bbTryIndex, 
+                successorBlock->bbHndIndex, exitBlock);
+        }
+    }
+
     GenTreePtr insertionPoint = reloadBlock->FirstNonPhiDef();
 
     if (insertionPoint == nullptr) 
@@ -262,12 +280,14 @@ GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* reloadBlock)
 //   produce a new statement implementing a reload from original local var to new proxy at
 //   the beginning of the block.
 //
-void WriteThru::InsertProxyReloads(BasicBlock* reloadBlock)
+void WriteThru::InsertProxyReloads(BasicBlock* exitBlock)
 {
     VARSET_TP lookupSet = VarSetOps::Intersection(comp, EHVars, reloadBlock->bbLiveIn);
     // Initialize insert point.  All reloads will be inserted before this point by assending
-    // local index number.
-    GenTreePtr insertPoint = FindInsertionPoint(reloadBlock);
+    // local index number.  Note that reload block is an out param and make be a different
+    // block than the exit block.
+    BasicBlock* reloadBlock = nullptr;
+    GenTreePtr insertPoint = FindInsertionPoint(exitBlock, &reloadBlock);
 
     // foreach EHVar that is live into this block, do a look up to see if it has a proxy.
     // - if a proxy is found do a reload from the original local var on the stack to the

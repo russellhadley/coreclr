@@ -55,7 +55,7 @@ private:
 
     void CreateEnregisterableProxies();
     
-    GenTreePtr FindInsertionPoint(BasicBlock* reloadBlock);
+    GenTreePtr FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** reloadBlock);
 
     void InsertParameterProxyDef();
 
