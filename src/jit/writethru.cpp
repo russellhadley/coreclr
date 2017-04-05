@@ -233,13 +233,14 @@ bool WriteThru::IsEHExit(BasicBlock* block)
 GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** reloadBlock)
 {
     assert(comp->fgComputePredsDone);
+    BasicBlock* insertBlock = nullptr;
 
     // Find the appropraite block;
 
     if (((exitBlock->bbFlags & BBF_KEEP_BBJ_ALWAYS) == 1) 
         && exitBlock->bbPrev->isBBCallAlwaysPair()) 
     {
-        successorBlock = exitBlock->GetUniqueSucc();
+        BasicBlock* successorBlock = exitBlock->GetUniqueSucc();
 
         if (successorBlock->GetUniquePred(comp) == nullptr)
         {
@@ -247,10 +248,21 @@ GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** rel
             // insert a airlock block.
             BasicBlock* newBlock = comp->fgNewBBinRegion(BBJ_ALWAYS, successorBlock->bbTryIndex, 
                 successorBlock->bbHndIndex, exitBlock);
+            insertBlock = newBlock;
         }
     }
+    else
+    {
+        insertBlock = exitBlock;
+    }
 
-    GenTreePtr insertionPoint = reloadBlock->FirstNonPhiDef();
+    assert(insertBlock != nullptr);
+
+    GenTreePtr insertionPoint = insertBlock->FirstNonPhiDef();
+
+    // Set out param reloadBlock to the computed insertBlock.
+
+    *reloadBlock = insertBlock;
 
     if (insertionPoint == nullptr) 
     {
@@ -282,7 +294,7 @@ GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** rel
 //
 void WriteThru::InsertProxyReloads(BasicBlock* exitBlock)
 {
-    VARSET_TP lookupSet = VarSetOps::Intersection(comp, EHVars, reloadBlock->bbLiveIn);
+    VARSET_TP lookupSet = VarSetOps::Intersection(comp, EHVars, exitBlock->bbLiveIn);
     // Initialize insert point.  All reloads will be inserted before this point by assending
     // local index number.  Note that reload block is an out param and make be a different
     // block than the exit block.
