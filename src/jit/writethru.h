@@ -81,5 +81,5 @@ public:
 };
 
 inline WriteThru::WriteThru(Compiler* _comp) : Phase(_comp, "EH Write Thru", PHASE_EH_WRITE_THRU)
-{
+{ 
 }

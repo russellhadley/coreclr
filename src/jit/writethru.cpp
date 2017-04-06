@@ -11,12 +11,14 @@
 //
 void WriteThru::DoPhase()
 {
-    int count = g_jitHost->getIntConfigValue(W("DoEHWriteThru"), -1);
-    if (count == -1)
+
+#if DEBUG
+    if (!(JitConfig.DoEHWriteThru().contains(comp->info.compMethodName, comp->info.compClassName, &comp->info.compMethodInfo->args)))
     {
         // default value do nothing;
         return;
     }
+#endif // DEBUG
 
     // Build liveness to compute live on handler entry/finally exit sets.
     // This will be incrementally updated and then reused in the SSA phase.

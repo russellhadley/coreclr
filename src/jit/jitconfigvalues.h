@@ -128,7 +128,7 @@ CONFIG_INTEGER(NgenOrder, W("NgenOrder"), 0)
 CONFIG_INTEGER(RunAltJitCode, W("RunAltJitCode"), 1) // If non-zero, and the compilation succeeds for an AltJit, then
                                                      // use the code. If zero, then we always throw away the generated
                                                      // code and fall back to the default compiler.
-CONFIG_INTEGER(DoEHWriteThru, W("DoEHWriteThru"), -1) // Do EH WriteThru
+CONFIG_METHODSET(DoEHWriteThru, W("DoEHWriteThru")) // Do EH WriteThru
 CONFIG_INTEGER(RunComponentUnitTests, W("JitComponentUnitTests"), 0) // Run JIT component unit tests
 CONFIG_INTEGER(ShouldInjectFault, W("InjectFault"), 0)
 CONFIG_INTEGER(StackProbesOverride, W("JitStackProbes"), 0)
