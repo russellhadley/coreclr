@@ -239,7 +239,7 @@ GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** rel
 
     // Find the appropraite block;
 
-    if (((exitBlock->bbFlags & BBF_KEEP_BBJ_ALWAYS) == 1) 
+    if (((exitBlock->bbFlags & BBF_KEEP_BBJ_ALWAYS) != 0)
         && exitBlock->bbPrev->isBBCallAlwaysPair()) 
     {
         BasicBlock* successorBlock = exitBlock->GetUniqueSucc();
@@ -250,6 +250,15 @@ GenTreePtr WriteThru::FindInsertionPoint(BasicBlock* exitBlock, BasicBlock** rel
             // insert a airlock block.
             BasicBlock* newBlock = comp->fgNewBBinRegion(BBJ_ALWAYS, successorBlock->bbTryIndex, 
                 successorBlock->bbHndIndex, exitBlock);
+            // Add edges to new block to represent the flow:
+            // newBlock to successorBlock
+            // exitBlock to newBlock
+            // Replace exitBlock with newBlock in successorBlock
+            // Add exitBlock as a predecessor of newBlock
+            newBlock->bbJumpDest = successorBlock;
+            exitBlock->bbJumpDest = newBlock;
+            comp->fgReplacePred(successorBlock, exitBlock, newBlock);
+            comp->fgAddRefPred(newBlock, exitBlock);
             insertBlock = newBlock;
         }
     }
@@ -303,13 +312,21 @@ void WriteThru::InsertProxyReloads(BasicBlock* exitBlock)
     BasicBlock* reloadBlock = nullptr;
     GenTreePtr insertPoint = FindInsertionPoint(exitBlock, &reloadBlock);
 
+    assert(reloadBlock != nullptr);
+
     // foreach EHVar that is live into this block, do a look up to see if it has a proxy.
     // - if a proxy is found do a reload from the original local var on the stack to the
     //   proxy.
 
-    VARSET_ITER_INIT(comp, iter, lookupSet, localId);
-    while (iter.NextElem(comp, &localId))
+    VARSET_ITER_INIT(comp, iter, lookupSet, localIndex);
+    while (iter.NextElem(comp, &localIndex))
     {
+        unsigned localId = comp->lvaTrackedToVarNum[localIndex];
+#if DEBUG
+        JITDUMP("Processing lclVar %d\n", localId);
+        DBEXEC(VERBOSE, comp->lvaDumpEntry(localId, Compiler::FrameLayoutState::NO_FRAME_LAYOUT));
+#endif // DEBUG
+
         unsigned proxyId;
         bool foundProxy = proxyVarsMap->TryGetValue(localId, &proxyId);
 
